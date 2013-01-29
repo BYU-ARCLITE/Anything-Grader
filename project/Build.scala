@@ -16,7 +16,8 @@ object ApplicationBuild extends Build {
 
     val main = PlayProject(appName, appVersion, appDependencies, mainLang = SCALA).settings(
       // Add your own project settings here
-      resolvers += "OpenNLP Repository" at "http://opennlp.sourceforge.net/maven2/"
+      resolvers += "OpenNLP Repository" at "http://opennlp.sourceforge.net/maven2/",
+      resolvers += "Google Gdata Maven Repository" at "http://maven.burtsev.net/"
     )
 
 }
