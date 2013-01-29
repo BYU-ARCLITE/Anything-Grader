@@ -14,6 +14,7 @@ import play.api.libs.json.JsBoolean
 import play.api.libs.json.JsNumber
 import play.api.libs.json.JsObject
 import play.api.Logger
+import play.api.libs.oauth.{ConsumerKey, OAuthCalculator}
 
 /**
  * This is the controller for the three different API endpoints. They are:
@@ -216,16 +217,19 @@ object API extends Controller {
       if (hook.authScheme.authType == "oauth") {
 
         // Include the data. Check if we are posting a url encoded data string
-        var params = Map[String, String]()
-        if (hook.method == "POST" && hook.contentType == "application/x-www-form-urlencoded")
-          params = OAuthUtil.parseQuerystring(data).toMap
-        else
-          params = Map("oauth_body_hash" -> Hasher.sha1Base64(data))
+//        var params = Map[String, String]()
+//        if (hook.method == "POST" && hook.contentType == "application/x-www-form-urlencoded")
+//          params = OAuthUtil.parseQuerystring(data).toMap
+//        else
+//          params = Map("oauth_body_hash" -> Hasher.sha1Base64(data))
 
         // Sign it
-        val oauthParameters = OAuthTools.generateOauthParameters(params, (hook.authScheme.publicKey, hook.authScheme.privateKey))
-        val authorization = OAuthTools.getAuthorizationHeader(hook.uri, hook.method, oauthParameters)
-        wsRequest = wsRequest.withHeaders("Authorization" -> authorization)
+        val consumerKey = ConsumerKey(hook.authScheme.publicKey, hook.authScheme.privateKey)
+        wsRequest.sign(OAuthCalculator(consumerKey, null))
+
+//        val oauthParameters = OAuthTools.generateOauthParameters(params, (hook.authScheme.publicKey, hook.authScheme.privateKey))
+//        val authorization = OAuthTools.getAuthorizationHeader(hook.uri, hook.method, oauthParameters)
+//        wsRequest = wsRequest.withHeaders("Authorization" -> authorization)
         Logger.debug("(API - sendGrades) OAuth 1.0a signed")
       }
 
