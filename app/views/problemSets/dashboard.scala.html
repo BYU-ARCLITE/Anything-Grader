@@ -1,0 +1,47 @@
+@(user: User)(implicit request: RequestHeader)
+
+@main("Anything Grader - Dashboard") {
+    <h1>@{org.apache.commons.lang3.StringUtils.capitalize(user.username)}'s Dashboard</h1>
+
+    <h2>Your Problem Sets</h2>
+    @if(user.problemSets.isEmpty) {
+        <em>You have no problem sets</em>
+    } else {
+        <table class="table table-bordered">
+            <tr>
+                <th>Name</th>
+                <th># Problems</th>
+                <th># Hooks</th>
+                <th>Actions</th>
+            </tr>
+            @for(problemSet <- user.problemSets) {
+                <tr>
+                    <td>@problemSet.name</td>
+                    <td>@problemSet.problems.size</td>
+                    <td>@problemSet.hooks.size</td>
+                    <td>
+                        <a href="@routes.ProblemSets.grades(problemSet.id.get)" class="btn">View Grades</a>
+                        <a href="@routes.ProblemSets.edit(problemSet.id.get)" class="btn">View/Edit</a>
+                        <a href="@routes.ProblemSets.editHooks(problemSet.id.get)" class="btn">Edit Hooks</a>
+                        <a href="@routes.ProblemSets.delete(problemSet.id.get)" class="btn">Delete</a>
+                    </td>
+                </tr>
+            }
+        </table>
+    }
+
+    <h3>Create a Problem Set</h3>
+    <form action="@routes.ProblemSets.create()" method="@routes.ProblemSets.create().method" class="form-horizontal">
+        <div class="control-group">
+            <label class="control-label" for="name">Name</label>
+            <div class="controls">
+                <input type="text" id="name" name="name" placeholder="Name">
+            </div>
+        </div>
+        <div class="control-group">
+            <div class="controls">
+                <button type="submit" class="btn btn-success">Create</button>
+            </div>
+        </div>
+    </form>
+}

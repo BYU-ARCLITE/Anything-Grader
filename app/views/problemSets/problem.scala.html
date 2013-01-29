@@ -1,0 +1,133 @@
+@(problem: Problem)(implicit request: RequestHeader)
+
+<div class="form-horizontal well">
+    <div class="control-group">
+        <label class="control-label" for="answers_@{problem.id.get}">Answers</label>
+        <div class="controls">
+            <ul id="answersList_@{problem.id.get}">
+                @for(answer <- problem.answers) {
+                    <li><span class='answer'>@answer</span>&nbsp;<a href='#' class='removeAnswer'>&times;</a></li>
+                }
+            </ul>
+            <input type="text" id="answers_@{problem.id.get}" placeholder="Add an Answer">
+            <button class="btn addAnswerButton" data-problem-id="@{problem.id.get}">Add</button>
+        </div>
+    </div>
+    <div class="control-group">
+        <label class="control-label" for="problemType_@{problem.id.get}">Problem Type</label>
+        <div class="controls">
+            <select id="problemType_@{problem.id.get}">
+                <option value="single" @if(problem.problemType == 'single) { selected="selected" } >Single Answer</option>
+                <option value="multiple" @if(problem.problemType == 'multiple) { selected="selected" }>Multiple Answer</option>
+            </select>
+        </div>
+    </div>
+    <div class="control-group">
+        <label class="control-label" for="points_@{problem.id.get}">Points</label>
+        <div class="controls">
+            <input type="text" id="points_@{problem.id.get}" placeholder="Points" value="@problem.points">
+        </div>
+    </div>
+    <div class="control-group">
+        <label class="control-label" for="acceptanceRate_@{problem.id.get}">Acceptance Rate</label>
+        <div class="controls">
+            <input type="text" id="acceptanceRate_@{problem.id.get}" placeholder="Enter a value between 0 and 1" value="@problem.acceptanceRate">
+        </div>
+    </div>
+    <div class="control-group">
+        <label class="control-label" for="caseModifier_@{problem.id.get}">Ignore Case?</label>
+        <div class="controls">
+            <input type="checkbox" id="caseModifier_@{problem.id.get}" @if(problem.caseModifier) { checked="checked" } >
+        </div>
+    </div>
+    <div class="control-group">
+        <label class="control-label" for="punctuationModifier_@{problem.id.get}">Ignore Punctuation?</label>
+        <div class="controls">
+            <input type="checkbox" id="punctuationModifier_@{problem.id.get}" @if(problem.punctuationModifier) { checked="checked" } >
+        </div>
+    </div>
+    <div class="control-group">
+        <label class="control-label" for="wordOrderModifier_@{problem.id.get}">Ignore Word Order?</label>
+        <div class="controls">
+            <input type="checkbox" id="wordOrderModifier_@{problem.id.get}" @if(problem.wordOrderModifier) { checked="checked" } >
+        </div>
+    </div>
+    <div class="control-group">
+        <label class="control-label" for="responseOrderModifier_@{problem.id.get}">Ignore Response Order?</label>
+        <div class="controls">
+            <input type="checkbox" id="responseOrderModifier_@{problem.id.get}" @if(problem.responseOrderModifier) { checked="checked" } >
+        </div>
+    </div>
+    <div class="control-group">
+        <label class="control-label" for="gradientGradeMethod_@{problem.id.get}">Give Partial Credit?</label>
+        <div class="controls">
+            <input type="checkbox" id="gradientGradeMethod_@{problem.id.get}" @if(problem.gradientGradeMethod) { checked="checked" } >
+        </div>
+    </div>
+    <div class="control-group">
+        <label class="control-label" for="subtractiveModifier_@{problem.id.get}">Give Negative Points?</label>
+        <div class="controls">
+            <input type="checkbox" id="subtractiveModifier_@{problem.id.get}" @if(problem.subtractiveModifier) { checked="checked" } >
+        </div>
+    </div>
+    <div class="control-group">
+        <div class="controls">
+            <button class="btn saveProblem" data-problem-id="@{problem.id.get}">Save Changes</button>
+            <button class="btn deleteProblem" data-problem-id="@{problem.id.get}">Delete Problem</button>
+            <!--<button class="btn moveUp" data-problem-id="@{problem.id.get}">Move Up</button>
+            <button class="btn moveDown" data-problem-id="@{problem.id.get}">Move Down</button>-->
+        </div>
+    </div>
+
+    <hr>
+
+    <h4>API Info</h4>
+    <p>
+        To grade this problem, use the following endpoint:
+        <code>@routes.API.grade().absoluteURL()</code>
+
+        <div style="display: inline-block">
+            <table class="table table-bordered">
+                <tr>
+                    <th>Method</th>
+                    <td>POST</td>
+                </tr>
+                <tr>
+                    <th>Parameters</th>
+                    <td>
+                        <p>
+                            <code>sessionId=XXXXXX</code><br />
+                            The session ID you received when started grading.
+                        </p>
+                        <p>
+                            <code>accessToken=XXXXXX</code><br />
+                            The access token you received from your last (most recent) API call.
+                        </p>
+                        <p>
+                            <code>problemId=@problem.id.get</code><br />
+                            The ID of this problem.
+                        </p>
+                        <p>
+                            <code>responses=["XXXXXX"...]</code><br />
+                            The list of responses formatted as a JavaScript string array.
+                        </p>
+                    </td>
+                </tr>
+                <tr>
+                    <th>Returns</th>
+                    <td>
+                    <p>Returns a JSON object like this:</p>
+                    <pre>
+{
+    "accessToken": "XXXXXX",
+    "possible": XXX,
+    "scaled": XXX,
+    "score": XXX,
+    "success": true
+}</pre>
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </p>
+</div>

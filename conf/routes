@@ -1,0 +1,41 @@
+# Routes
+# This file defines all application routes (Higher priority routes first)
+# ~~~~
+
+# Home page
+GET     /                           controllers.Application.index
+GET     /test                       controllers.Application.test
+POST    /test                       controllers.Application.testPost
+
+# Authentication
+GET     /auth/login                 controllers.Auth.login
+POST    /auth/login                 controllers.Auth.authenticate
+GET     /auth/signup                controllers.Auth.signup
+POST    /auth/signup                controllers.Auth.createAccount
+
+# Problem Sets
+GET     /problemSets                controllers.ProblemSets.dashboard
+POST    /problemSets                controllers.ProblemSets.create
+GET     /problemSets/:id            controllers.ProblemSets.edit(id: Long)
+POST    /problemSets/:id            controllers.ProblemSets.save(id: Long)
+GET     /problemSets/:id/hook       controllers.ProblemSets.editHooks(id: Long)
+GET     /problemSets/:id/grades     controllers.ProblemSets.grades(id: Long)
+GET     /problemSets/:id/delete     controllers.ProblemSets.delete(id: Long)
+
+# Problems
+POST    /problems                   controllers.Problems.create
+GET     /problems/:id/delete        controllers.Problems.delete(id: Long)
+POST    /problems/:id               controllers.Problems.save(id: Long)
+
+# Hooks
+POST    /hooks                      controllers.Hooks.create
+GET     /hooks/:id/delete           controllers.Hooks.delete(id: Long)
+POST    /hooks/:id                  controllers.Hooks.save(id: Long)
+
+# API
+POST    /api/start                  controllers.API.startSession
+POST    /api/grade                  controllers.API.grade
+POST    /api/finish                 controllers.API.finishSession
+
+# Map static resources from the /public folder to the /assets URL path
+GET     /assets/*file               controllers.Assets.at(path="/public", file)

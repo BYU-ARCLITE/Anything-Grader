@@ -1,0 +1,15 @@
+@()(implicit request: RequestHeader)
+
+@main("Anything Grader") {
+    <h1>Anything Grader</h1>
+    <div>
+        <a href="@routes.Auth.login()" class="btn">Login</a>
+        <a href="@routes.Auth.signup()" class="btn">Signup</a>
+    </div>
+    <hr>
+    <p>
+        Written by Joshua Monson for the ARCLITE Lab, Brigham Young University. Last updated January 2013. This project
+        is open source and designed to assist with the creation of online learning systems. To obtain the code, go to
+        <a href="https://github.com/BYU-ARCLITE/Anything-Grader">the GitHub page.</a>
+    </p>
+}

@@ -1,0 +1,29 @@
+@(problemSet: ProblemSet, sessions: List[GradeSession])(implicit request: RequestHeader)
+
+@main("Anything Grader - Dashboard") {
+    <h1>Grades for @problemSet.name</h1>
+
+    @if(sessions.isEmpty) {
+        <em>Nobody has taken this problem set yet.</em>
+    } else {
+        <table class="table table-bordered">
+            <tr>
+                <th>User Info</th>
+                <th>Score</th>
+                <th>Scaled Score</th>
+                <th>Started</th>
+                <th>Finished</th>
+            </tr>
+            @for(session <- sessions) {
+                <tr>
+                    <td>@session.userInfo</td>
+                    <td>@session.getScore / @session.problemSet.getPointsPossible</td>
+                    <td>@session.getScaledScore</td>
+                    <td>@tools.TimeTools.dateFromTimestamp(session.started)</td>
+                    <td>@tools.TimeTools.dateFromTimestamp(session.finished)</td>
+                </tr>
+            }
+        </table>
+    }
+
+}
