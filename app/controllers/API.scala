@@ -93,8 +93,11 @@ object API extends Controller {
 
               // Grade the problem
               val responses = Json.parse(request.body("responses")(0)).as[List[String]]
+              Logger.debug("(API - grade) Got responses")
               val data = Grader.grade(responses, problem.get)
+              Logger.debug("(API - grade) Problem graded")
               val updatedSession = session.get.addResponseData(data).setToken(createToken).save
+              Logger.debug("(API - grade) Session updated")
 
               // Return the result
               Ok(JsObject(Seq(
