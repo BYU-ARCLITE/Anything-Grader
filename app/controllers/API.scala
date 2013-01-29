@@ -171,6 +171,7 @@ object API extends Controller {
         }
       } catch {
         case error: Throwable => {
+
           Logger.error(error.getMessage)
           BadRequest(JsObject(Seq("success" -> JsBoolean(value = false), "message" -> JsString("An unexpected error occured")))).as("application/json")
         }
@@ -231,7 +232,7 @@ object API extends Controller {
       // Send the request
       if (hook.method == "POST") {
         val response = wsRequest.post(data).await.get
-        Logger.debug("LMS response: " + response.body)
+        Logger.error("LMS response: " + response.body)
       } else
         wsRequest.withQueryString("grade" -> grade.toString()).get()
       Logger.debug("(API - sendGrades) WS request sent")
