@@ -53,10 +53,15 @@ object API extends Controller {
             "accessToken" -> JsString(session.token)
           ))).as("application/json")
 
-        } else
+        } else {
+          Logger.error("No problem set with ID = " + request.body("problemSet")(0))
           NotFound(JsObject(Seq("success" -> JsBoolean(value = false), "message" -> JsString("The problem set was not found")))).as("application/json")
+        }
       } catch {
-        case _: Throwable => BadRequest(JsObject(Seq("success" -> JsBoolean(value = false), "message" -> JsString("An unexpected error occured")))).as("application/json")
+        case error: Throwable => {
+          Logger.error(error.getMessage)
+          BadRequest(JsObject(Seq("success" -> JsBoolean(value = false), "message" -> JsString("An unexpected error occured")))).as("application/json")
+        }
       }
   }
 
@@ -100,14 +105,23 @@ object API extends Controller {
                 "accessToken" -> JsString(updatedSession.token)
               ))).as("application/json")
 
-            } else
+            } else {
+              Logger.error("Invalid problem id")
               BadRequest(JsObject(Seq("success" -> JsBoolean(value = false), "message" -> JsString("Invalid problem id")))).as("application/json")
-          } else
+            }
+          } else {
+            Logger.error("Bad access token")
             Unauthorized(JsObject(Seq("success" -> JsBoolean(value = false), "message" -> JsString("Bad access token")))).as("application/json")
-        } else
+          }
+        } else {
+          Logger.error("The session id was invalid")
           NotFound(JsObject(Seq("success" -> JsBoolean(value = false), "message" -> JsString("The session id was invalid")))).as("application/json")
+        }
       } catch {
-        case _: Throwable => BadRequest(JsObject(Seq("success" -> JsBoolean(value = false), "message" -> JsString("An unexpected error occured")))).as("application/json")
+        case error: Throwable => {
+          Logger.error(error.getMessage)
+          BadRequest(JsObject(Seq("success" -> JsBoolean(value = false), "message" -> JsString("An unexpected error occured")))).as("application/json")
+        }
       }
   }
 
@@ -142,12 +156,19 @@ object API extends Controller {
               "scaled" -> JsNumber(session.get.getScaledScore)
             ))).as("application/json")
 
-          } else
+          } else {
+            Logger.error("Bad access token")
             Unauthorized(JsObject(Seq("success" -> JsBoolean(value = false), "message" -> JsString("Bad access token")))).as("application/json")
-        } else
+          }
+        } else {
+          Logger.error("The session id was invalid")
           NotFound(JsObject(Seq("success" -> JsBoolean(value = false), "message" -> JsString("The session was not found")))).as("application/json")
+        }
       } catch {
-        case _: Throwable => BadRequest(JsObject(Seq("success" -> JsBoolean(value = false), "message" -> JsString("An unexpected error occured")))).as("application/json")
+        case error: Throwable => {
+          Logger.error(error.getMessage)
+          BadRequest(JsObject(Seq("success" -> JsBoolean(value = false), "message" -> JsString("An unexpected error occured")))).as("application/json")
+        }
       }
   }
 
@@ -200,7 +221,7 @@ object API extends Controller {
       // Send the request
       if (hook.method == "POST") {
         val response = wsRequest.post(data).await.get
-        Logger.debug("Moodle response: " + response.body)
+        Logger.debug("LMS response: " + response.body)
       } else
         wsRequest.withQueryString("grade" -> grade.toString()).get()
     }
