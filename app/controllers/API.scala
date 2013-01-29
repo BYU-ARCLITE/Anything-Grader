@@ -145,9 +145,11 @@ object API extends Controller {
           val token = request.body("accessToken")(0)
           if (token == session.get.token) {
             session.get.setFinished(new Date().getTime).save
+            Logger.debug("(API - finishSession) Session Finished")
 
             // Send grades out
             sendGrades(session.get)
+            Logger.debug("(API - finishSession) Grades sent out")
 
             Ok(JsObject(Seq(
               "success" -> JsBoolean(value = true),
@@ -187,6 +189,7 @@ object API extends Controller {
 
       // Create the request
       var wsRequest = WS.url(hook.uri).withHeaders("Content-Type" -> hook.contentType)
+      Logger.debug("(API - sendGrades) WS request created")
 
       // Create the data to be sent
       val score = if (hook.scaled) session.getScaledScore else session.getScore
@@ -196,11 +199,14 @@ object API extends Controller {
           ("random" -> util.Random.nextInt(32).toString)
         data = new Mustache(hook.additionalData).render(context)
       }
+      Logger.debug("(API - sendGrades) Data created")
 
       // Check the authentication and sign
       // HTTP Authentication
-      if (hook.authScheme.authType == "http")
+      if (hook.authScheme.authType == "http") {
         wsRequest = wsRequest.withAuth(hook.authScheme.publicKey, hook.authScheme.privateKey, AuthScheme.BASIC)
+        Logger.debug("(API - sendGrades) HTTP Auth set up")
+      }
 
       // OAuth 1.0a signing
       if (hook.authScheme.authType == "oauth") {
@@ -216,6 +222,7 @@ object API extends Controller {
         val oauthParameters = OAuthTools.generateOauthParameters(params, (hook.authScheme.publicKey, hook.authScheme.privateKey))
         val authorization = OAuthTools.getAuthorizationHeader(hook.uri, hook.method, oauthParameters)
         wsRequest = wsRequest.withHeaders("Authorization" -> authorization)
+        Logger.debug("(API - sendGrades) OAuth 1.0a signed")
       }
 
       // Send the request
@@ -224,6 +231,7 @@ object API extends Controller {
         Logger.debug("LMS response: " + response.body)
       } else
         wsRequest.withQueryString("grade" -> grade.toString()).get()
+      Logger.debug("(API - sendGrades) WS request sent")
     }
   }
 }
