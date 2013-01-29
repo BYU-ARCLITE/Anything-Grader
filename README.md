@@ -5,8 +5,8 @@ This project is open source and designed to assist with the creation of online l
 
 Requirements
 ------------
-Play Framework 2.0.2
-MySQL
+ * Play Framework 2.0.4
+ * MySQL
 
 Installation instructions
 -------------------------
