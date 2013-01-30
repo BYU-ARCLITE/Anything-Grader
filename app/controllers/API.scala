@@ -1,11 +1,13 @@
 package controllers
 
+import _root_.oauth.signpost.commonshttp.CommonsHttpOAuthConsumer
 import play.api.mvc.{Request, Action, Controller}
-import models.{Problem, ProblemSet, GradeSession}
+import models.{Hook, Problem, ProblemSet, GradeSession}
 import anorm.NotAssigned
 import java.util.Date
 import play.api.libs.json._
 import tools._
+import oauth.CommonsHttpOAuthConsumerJosh
 import play.api.libs.ws.WS
 import com.ning.http.client.Realm.AuthScheme
 import play.api.libs.json.JsString
@@ -14,6 +16,13 @@ import play.api.libs.json.JsNumber
 import play.api.libs.json.JsObject
 import play.api.Logger
 import play.api.libs.oauth.{RequestToken, ConsumerKey, OAuthCalculator}
+import java.net.{HttpURLConnection, URL}
+import org.apache.http.client.methods.HttpPost
+import org.apache.http.impl.client.DefaultHttpClient
+import org.apache.http.entity.StringEntity
+import java.io.StringWriter
+import org.apache.commons.io.IOUtils
+import org.apache.http.message.BasicHeader
 
 /**
  * This is the controller for the three different API endpoints. They are:
@@ -178,6 +187,31 @@ object API extends Controller {
       }
   }
 
+  def sendOAuthHook(hook: Hook, data: String) {
+    // create a consumer object and configure it with the access
+    // token and token secret obtained from the service provider
+    val consumer = new CommonsHttpOAuthConsumerJosh(hook.authScheme.publicKey, hook.authScheme.privateKey)
+
+    // Set up the request
+    val request = new HttpPost(hook.uri)
+    val entity = new StringEntity(data)
+    entity.setContentType(new BasicHeader("Content-Type", hook.contentType))
+    request.setEntity(entity)
+
+    // Sign it
+    consumer.sign(request)
+
+    // Send the request
+    val httpClient = new DefaultHttpClient()
+    val response = httpClient.execute(request)
+
+    // Retrieve the content
+    val writer = new StringWriter()
+    IOUtils.copy(response.getEntity.getContent, writer)
+    val responseContent = writer.toString
+    Logger.debug(responseContent)
+  }
+
   /**
    * This function creates the WS requests and sends them according to the hook type.
    * @param session The session object which contains the score and hooks.
@@ -190,10 +224,6 @@ object API extends Controller {
     // For each hook
     for (hook <- session.problemSet.hooks) {
 
-      // Create the request
-      var wsRequest = WS.url(hook.uri).withHeaders("Content-Type" -> hook.contentType)
-      Logger.debug("(API - sendGrades) WS request created")
-
       // Create the data to be sent
       val score = if (hook.scaled) session.getScaledScore else session.getScore
       var data = ""
@@ -202,32 +232,25 @@ object API extends Controller {
           ("random" -> util.Random.nextInt(32).toString)
         data = new Mustache(hook.additionalData).render(context)
       }
-      Logger.debug("(API - sendGrades) Data created")
 
-      // Check the authentication and sign
-      // HTTP Authentication
-      if (hook.authScheme.authType == "http") {
-        wsRequest = wsRequest.withAuth(hook.authScheme.publicKey, hook.authScheme.privateKey, AuthScheme.BASIC)
-        Logger.debug("(API - sendGrades) HTTP Auth set up")
+      // Do different approaches depending on the auth scheme
+      if (hook.authScheme.authType == "oauth")
+        sendOAuthHook(hook, data)
+      else {
+        // Create the request
+        var wsRequest = WS.url(hook.uri).withHeaders("Content-Type" -> hook.contentType)
+
+        // HTTP Authentication
+        if (hook.authScheme.authType == "http")
+          wsRequest = wsRequest.withAuth(hook.authScheme.publicKey, hook.authScheme.privateKey, AuthScheme.BASIC)
+
+        // Send the request
+        if (hook.method == "POST") {
+          val response = wsRequest.post(data).await.get
+          Logger.error("LMS response: " + response.body)
+        } else
+          wsRequest.withQueryString("grade" -> grade.toString()).get()
       }
-
-      // OAuth 1.0a signing
-      if (hook.authScheme.authType == "oauth") {
-
-        // Sign it
-        val consumerKey = ConsumerKey(hook.authScheme.publicKey, hook.authScheme.privateKey)
-        val token = RequestToken("", "")
-        wsRequest = wsRequest.sign(OAuthCalculator(consumerKey, token))
-        Logger.debug("(API - sendGrades) OAuth 1.0a signed")
-      }
-
-      // Send the request
-      if (hook.method == "POST") {
-        val response = wsRequest.post(data).await.get
-        Logger.error("LMS response: " + response.body)
-      } else
-        wsRequest.withQueryString("grade" -> grade.toString()).get()
-      Logger.debug("(API - sendGrades) WS request sent")
     }
   }
 }
