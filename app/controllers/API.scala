@@ -8,13 +8,12 @@ import play.api.libs.json._
 import tools._
 import play.api.libs.ws.WS
 import com.ning.http.client.Realm.AuthScheme
-import com.google.gdata.client.authn.oauth.OAuthUtil
 import play.api.libs.json.JsString
 import play.api.libs.json.JsBoolean
 import play.api.libs.json.JsNumber
 import play.api.libs.json.JsObject
 import play.api.Logger
-import play.api.libs.oauth.{ConsumerKey, OAuthCalculator}
+import play.api.libs.oauth.{RequestToken, ConsumerKey, OAuthCalculator}
 
 /**
  * This is the controller for the three different API endpoints. They are:
@@ -143,7 +142,7 @@ object API extends Controller {
 
         // Check that the session is real and not finished
         val session = GradeSession.findById(request.body("sessionId")(0).toLong)
-        if (session.isDefined && session.get.finished == 0) {
+        if (session.isDefined /* && session.get.finished == 0*/ ) {
 
           // Check that the auth token matches
           val token = request.body("accessToken")(0)
@@ -187,7 +186,6 @@ object API extends Controller {
    * @return Unit
    */
   def sendGrades(session: GradeSession)(implicit request: Request[Map[String, Seq[String]]]) {
-    import collection.JavaConversions._
 
     // For each hook
     for (hook <- session.problemSet.hooks) {
@@ -216,20 +214,10 @@ object API extends Controller {
       // OAuth 1.0a signing
       if (hook.authScheme.authType == "oauth") {
 
-        // Include the data. Check if we are posting a url encoded data string
-//        var params = Map[String, String]()
-//        if (hook.method == "POST" && hook.contentType == "application/x-www-form-urlencoded")
-//          params = OAuthUtil.parseQuerystring(data).toMap
-//        else
-//          params = Map("oauth_body_hash" -> Hasher.sha1Base64(data))
-
         // Sign it
         val consumerKey = ConsumerKey(hook.authScheme.publicKey, hook.authScheme.privateKey)
-        wsRequest.sign(OAuthCalculator(consumerKey, null))
-
-//        val oauthParameters = OAuthTools.generateOauthParameters(params, (hook.authScheme.publicKey, hook.authScheme.privateKey))
-//        val authorization = OAuthTools.getAuthorizationHeader(hook.uri, hook.method, oauthParameters)
-//        wsRequest = wsRequest.withHeaders("Authorization" -> authorization)
+        val token = RequestToken("", "")
+        wsRequest.sign(OAuthCalculator(consumerKey, token))
         Logger.debug("(API - sendGrades) OAuth 1.0a signed")
       }
 
