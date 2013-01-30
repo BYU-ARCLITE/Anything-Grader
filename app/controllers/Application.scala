@@ -1,8 +1,10 @@
 package controllers
 
 import play.api.mvc._
-import tools.OAuthTools
+import tools.{Grader, OAuthTools}
 import com.google.gdata.client.authn.oauth._
+import models.Problem
+import anorm.NotAssigned
 
 object Application extends Controller {
 
@@ -13,53 +15,13 @@ object Application extends Controller {
 
   def test = Action {
     implicit request =>
-    //    val template = new Mustache("This is a {{test}}")
-    //    val s = template.render(Map("test" -> "cool thing"))
 
+      val problem = Problem(NotAssigned, List("Red", "Yellow", "Blue"), 'multiple, 1, 1, caseModifier = false,
+        punctuationModifier = false, wordOrderModifier = false, responseOrderModifier = true)
+      val responses = List("Yellow", "Blue")
+      val grade = Grader.grade(responses, problem)
 
-//      val parameters = Map(
-//        "oauth_consumer_key" -> "dpf43f3p2l4k3l03",
-//        "oauth_token" -> "nnch734d00sl2jdk",
-//        "oauth_signature_method" -> "HMAC-SHA1",
-//        "oauth_timestamp" -> "1191242096",
-//        "oauth_nonce" -> "kllo9940pd9333jh",
-//        "oauth_version" -> "1.0",
-//        "file" -> "vacation.jpg",
-//        "size" -> "original"
-//      )
-
-      val oauthParameters = new OAuthParameters()
-      oauthParameters.setOAuthConsumerKey("dpf43f3p2l4k3l03")
-      oauthParameters.setOAuthConsumerSecret("kd94hf93k423kf44")
-      oauthParameters.setOAuthTokenSecret("pfkkdhi9sl3r4s00")
-      oauthParameters.setOAuthSignatureMethod("HMAC-SHA1")
-      oauthParameters.setOAuthToken("nnch734d00sl2jdk")
-      oauthParameters.setOAuthNonce("kllo9940pd9333jh")
-      oauthParameters.setOAuthTimestamp("1191242096")
-      oauthParameters.addCustomBaseParameter("oauth_version", "1.0")
-      oauthParameters.addCustomBaseParameter("file", "vacation.jpg")
-      oauthParameters.addCustomBaseParameter("size", "original")
-
-
-      //      val baseString = OAuthUtil.getSignatureBaseString("http://photos.example.net/photos", "GET", oauthParameters.getBaseParameters)
-
-      val auth = OAuthTools.getAuthorizationHeader("http://photos.example.net/photos", "GET", oauthParameters)
-
-
-      //      val signature = new OAuthHmacSha1Signer().getSignature(baseString, oauthParameters)
-
-      //val oa = new OAuthParameters()
-      //signer.set
-      //      val oauthParameters = new GoogleOAuthHelper(signer)
-      //      oauthParameters.s
-      //      oauthParameters.setOAuthConsumerKey("dpf43f3p2l4k3l03")
-      //      oauthParameters.setOAuthConsumerSecret("kd94hf93k423kf44&pfkkdhi9sl3r4s00")
-      ////      val asdf = new com.google.gdata.client.authn.oauth.OAuthHmacSha1Signer()
-      //      oauthParameters.get
-
-
-
-      Ok(auth)
+      Ok(grade.grade.toString)
   }
 
   def testPost = Action {

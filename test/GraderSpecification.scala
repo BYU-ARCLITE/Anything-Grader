@@ -94,6 +94,19 @@ class GraderSpecification extends Specification {
       grade2 must beEqualTo(2d)
       grade3 must beEqualTo(0d)
     }
+    "Be able to ignore response order with different number of answers" in {
+      val problem1 = Problem(NotAssigned, List("Red", "Yellow", "Blue"), 'multiple, 1, 1, false, false, false, true)
+      val problem2 = Problem(NotAssigned, List("Red", "Yellow", "Blue"), 'multiple)
+      val grade1 = Grader.grade(List("Yellow", "Blue"), problem1).grade
+      val grade2 = Grader.grade(List("Blue", "Yellow"), problem1).grade
+      val grade3 = Grader.grade(List("Blue", "Orange", "Red"), problem1).grade
+      val grade4 = Grader.grade(List("Blue", "Orange", "Red"), problem2).grade
+
+      grade1 must beEqualTo(2d)
+      grade2 must beEqualTo(2d)
+      grade3 must beEqualTo(2d)
+      grade4 must beEqualTo(0d)
+    }
     "Give partial credit" in {
       val problem1 = Problem(NotAssigned, List("four"), 'single, 10, 1, false, false, false, false, true)
       val problem2 = Problem(NotAssigned, List("four"), 'single)
