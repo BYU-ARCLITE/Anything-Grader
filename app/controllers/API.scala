@@ -217,7 +217,7 @@ object API extends Controller {
         // Sign it
         val consumerKey = ConsumerKey(hook.authScheme.publicKey, hook.authScheme.privateKey)
         val token = RequestToken("", "")
-        wsRequest.sign(OAuthCalculator(consumerKey, token))
+        wsRequest = wsRequest.sign(OAuthCalculator(consumerKey, token))
         Logger.debug("(API - sendGrades) OAuth 1.0a signed")
       }
 
