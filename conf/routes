@@ -7,6 +7,8 @@ GET     /                               controllers.Application.index
 GET     /test                           controllers.Application.test
 POST    /test                           controllers.Application.testPost
 
+GET     /extract/:username              controllers.Application.extract(username: String)
+
 # Authentication
 GET     /auth/login                     controllers.Auth.login
 POST    /auth/login                     controllers.Auth.authenticate

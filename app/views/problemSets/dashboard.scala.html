@@ -14,7 +14,7 @@
                 <th># Hooks</th>
                 <th>Actions</th>
             </tr>
-            @for(problemSet <- user.problemSets) {
+            @for(problemSet <- user.problemSets.sortWith(_.name < _.name)) {
                 <tr>
                     <td>@problemSet.name</td>
                     <td>@problemSet.problems.size</td>
@@ -55,7 +55,7 @@
                 <th>ID</th>
                 <th>Actions</th>
             </tr>
-            @for(problem <- user.floatingProblems) {
+            @for(problem <- user.floatingProblems.sortWith(_.name < _.name)) {
                 <tr>
                     <td>@problem.name</td>
                     <td>@problem.id.get</td>
