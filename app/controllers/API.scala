@@ -223,7 +223,7 @@ object API extends Controller {
     val writer = new StringWriter()
     IOUtils.copy(response.getEntity.getContent, writer)
     val responseContent = writer.toString
-    Logger.debug(responseContent)
+    Logger.error("LMS Response: " + responseContent)
   }
 
   /**
@@ -261,7 +261,7 @@ object API extends Controller {
         // Send the request
         if (hook.method == "POST") {
           val response = wsRequest.post(data).await.get
-          Logger.error("LMS response: " + response.body)
+          //Logger.error("LMS response: " + response.body)
         } else
           wsRequest.withQueryString("grade" -> grade.toString()).get()
       }
