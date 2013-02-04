@@ -1,6 +1,6 @@
 package tools
 
-import models.{ResponseData, Problem}
+import models.{GradeSession, ResponseData, Problem}
 import anorm.NotAssigned
 import org.apache.commons.lang3.StringUtils
 
@@ -98,4 +98,8 @@ object Grader {
       processedResponses = processedResponses.map(r => r.replaceAll("[^\\w\\s]", ""))
     processedResponses.map(r => Tokenizer(r))
   }
+
+  def getScore(session: GradeSession): Double = session.responseData.map(_.grade).sum
+  def getPointsPossible(session: GradeSession): Double = session.responseData.map(_.problem.getPointsPossible).sum
+  def getScaled(session: GradeSession): Double = getScore(session) / getPointsPossible(session)
 }

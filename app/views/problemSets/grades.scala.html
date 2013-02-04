@@ -20,10 +20,16 @@
             @for(session <- sessions) {
                 <tr>
                     <td>@session.userInfo</td>
-                    <td>@session.getScore / @session.problemSet.getPointsPossible</td>
-                    <td>@session.getScaledScore</td>
+                    <td>@tools.Grader.getScore(session) / @tools.Grader.getPointsPossible(session)</td>
+                    <td>@tools.Grader.getScaled(session)</td>
                     <td>@tools.TimeTools.dateFromTimestamp(session.started)</td>
-                    <td>@tools.TimeTools.dateFromTimestamp(session.finished)</td>
+                    <td>
+                        @if(session.finished == 0) {
+                            <em>Not finished</em>
+                        } else {
+                            @tools.TimeTools.dateFromTimestamp(session.finished)
+                        }
+                    </td>
                 </tr>
             }
         </table>

@@ -179,9 +179,9 @@ object API extends Controller {
 
             Ok(JsObject(Seq(
               "success" -> JsBoolean(value = true),
-              "score" -> JsNumber(session.get.getScore),
-              "possible" -> JsNumber(session.get.problemSet.getPointsPossible),
-              "scaled" -> JsNumber(session.get.getScaledScore)
+              "score" -> JsNumber(Grader.getScore(session.get)),
+              "possible" -> JsNumber(Grader.getPointsPossible(session.get)),
+              "scaled" -> JsNumber(Grader.getScaled(session.get))
             ))).as("application/json")
 
           } else {
