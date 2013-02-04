@@ -1,6 +1,9 @@
 @(problemSet: ProblemSet, sessions: List[GradeSession])(implicit request: RequestHeader)
 
 @main("Anything Grader - Dashboard") {
+
+    @views.html.problemSets.header("grades", problemSet.name, problemSet.id.get)
+
     <h1>Grades for @problemSet.name</h1>
 
     @if(sessions.isEmpty) {

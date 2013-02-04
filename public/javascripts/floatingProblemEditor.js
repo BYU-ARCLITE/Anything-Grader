@@ -1,9 +1,6 @@
 
-var problemSetId = window.location.pathname.substring(window.location.pathname.lastIndexOf("/") + 1);
-
 function getProblemData(id) {
     return {
-        problemSet: problemSetId,
         name: $("#name_" + id).val(),
         answers: JSON.stringify($("#answersList_"+id+" > li").children(".answer").map(function(){return $(this).text();}).get()),
         problemType: $("#problemType_" + id).val(),
@@ -24,24 +21,6 @@ function setupRemoveAnswers() {
 }
 
 $(function() {
-    $(".saveBtn").click(function() {
-        var problemSetData = {
-            name: $("#name").val()
-        };
-        $.ajax("/problemSets/" + problemSetId, {
-            type: "post",
-            data: problemSetData,
-            dataType: "json",
-            success: function(data) {
-                if(!data.success)
-                    alert("Error: " + data.message);
-            },
-            error: function(data) {
-                alert("Error: " + data.message);
-            }
-        })
-    });
-
     $(".addAnswerButton").click(function() {
         // Get the answer text
         var id = $(this).attr("data-problem-id"),
@@ -74,24 +53,18 @@ $(function() {
 
     $(".saveProblem").click(function() {
         var id = $(this).attr("data-problem-id");
-        var data = getProblemData(id);
-        $.ajax("/problems/" + id, {
+        $.ajax("/problems/floating/" + id, {
             type: "post",
-            data: data,
+            data: getProblemData(id),
             dataType: "json",
             success: function(data) {
                 if(!data.success)
                     alert("Error: " + data.message);
-//                else
-//                    location.reload();
             },
             error: function(data) {
                 alert("Error: " + data.message);
             }
         });
-
-        // Update the name on the accordion
-        $(this).parents(".accordion-group").find(".accordion-heading > a").text(data.name);
     });
 
     $(".deleteProblem").click(function() {
@@ -104,8 +77,7 @@ $(function() {
                     location.reload();
             },
             error: function(data) {
-                //alert("Error: " + data.message);
-                alert(JSON.stringify(data));
+                alert("Error: " + data.message);
             }
         })
     });

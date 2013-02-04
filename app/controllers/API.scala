@@ -1,8 +1,7 @@
 package controllers
 
-import _root_.oauth.signpost.commonshttp.CommonsHttpOAuthConsumer
 import play.api.mvc.{Request, Action, Controller}
-import models.{Hook, Problem, ProblemSet, GradeSession}
+import models._
 import anorm.NotAssigned
 import java.util.Date
 import play.api.libs.json._
@@ -15,14 +14,16 @@ import play.api.libs.json.JsBoolean
 import play.api.libs.json.JsNumber
 import play.api.libs.json.JsObject
 import play.api.Logger
-import play.api.libs.oauth.{RequestToken, ConsumerKey, OAuthCalculator}
-import java.net.{HttpURLConnection, URL}
 import org.apache.http.client.methods.HttpPost
 import org.apache.http.impl.client.DefaultHttpClient
 import org.apache.http.entity.StringEntity
 import java.io.StringWriter
 import org.apache.commons.io.IOUtils
 import org.apache.http.message.BasicHeader
+import play.api.libs.json.JsString
+import play.api.libs.json.JsBoolean
+import play.api.libs.json.JsNumber
+import play.api.libs.json.JsObject
 
 /**
  * This is the controller for the three different API endpoints. They are:
@@ -95,28 +96,41 @@ object API extends Controller {
           val token = request.body("accessToken")(0)
           if (token == session.get.token) {
 
-            // Check that the problem is real, is part of the active session, and not already graded
+            // Check that the problem is real
             val problem = Problem.findById(request.body("problemId")(0).toLong)
-            if (problem.isDefined && session.get.problemSet.problems.contains(problem.get) &&
-              session.get.responseData.filter(d => d.problem == problem.get).isEmpty) {
+            if (problem.isDefined) {
 
-              // Grade the problem
-              val responses = Json.parse(request.body("responses")(0)).as[List[String]]
-              Logger.debug("(API - grade) Got responses")
-              val data = Grader.grade(responses, problem.get)
-              Logger.debug("(API - grade) Problem graded")
-              val updatedSession = session.get.addResponseData(data).setToken(createToken).save
-              Logger.debug("(API - grade) Session updated")
+              // Check that problem is in the grading scope (in the problem set or floating)
+              val user = User.findByProblemSet(session.get.problemSet).get
+              val inScope = session.get.problemSet.problems.contains(problem.get) || user.floatingProblems.contains(problem.get)
 
-              // Return the result
-              Ok(JsObject(Seq(
-                "success" -> JsBoolean(value = true),
-                "score" -> JsNumber(data.grade),
-                "possible" -> JsNumber(problem.get.getPointsPossible),
-                "scaled" -> JsNumber(data.grade / problem.get.getPointsPossible),
-                "accessToken" -> JsString(updatedSession.token)
-              ))).as("application/json")
+              // Check that the problem is gradable (hasn't been graded or allows for multiple gradings)
+              val canGrade = problem.get.multipleGradeModifier ||
+                session.get.responseData.filter(d => d.problem == problem.get).isEmpty
 
+              if (inScope && canGrade) {
+
+                // Grade the problem
+                val responses = Json.parse(request.body("responses")(0)).as[List[String]]
+                Logger.debug("(API - grade) Got responses")
+                val data = Grader.grade(responses, problem.get)
+                Logger.debug("(API - grade) Problem graded")
+                val updatedSession = session.get.addResponseData(data).setToken(createToken).save
+                Logger.debug("(API - grade) Session updated")
+
+                // Return the result
+                Ok(JsObject(Seq(
+                  "success" -> JsBoolean(value = true),
+                  "score" -> JsNumber(data.grade),
+                  "possible" -> JsNumber(problem.get.getPointsPossible),
+                  "scaled" -> JsNumber(data.grade / problem.get.getPointsPossible),
+                  "accessToken" -> JsString(updatedSession.token)
+                ))).as("application/json")
+
+              } else {
+                Logger.error("Cannot grade problem")
+                BadRequest(JsObject(Seq("success" -> JsBoolean(value = false), "message" -> JsString("Cannot grade problem")))).as("application/json")
+              }
             } else {
               Logger.error("Invalid problem id")
               BadRequest(JsObject(Seq("success" -> JsBoolean(value = false), "message" -> JsString("Invalid problem id")))).as("application/json")

@@ -7,26 +7,28 @@ import anorm._
 import anorm.SqlParser._
 import play.api.mvc.RequestHeader
 
-case class User(id: Pk[Long], username: String, password: String, problemSets: List[ProblemSet]) {
+case class User(id: Pk[Long], username: String, password: String, problemSets: List[ProblemSet], floatingProblems: List[Problem]) {
 
   def insert: User = {
     DB.withConnection {
       implicit connection =>
         val newProblemSets = this.problemSets.map(p => p.save)
+        val newFloatingProblems = this.floatingProblems.map(p => p.save)
 
         val id: Option[Long] = SQL(
           """
           insert into user
-          (username, password, problemSets)
-          values ({username}, {password}, {problemSets})
+          (username, password, problemSets, floatingProblems)
+          values ({username}, {password}, {problemSets}, {floatingProblems})
           """
         ).on(
           'username -> this.username,
           'password -> this.password,
-          'problemSets -> newProblemSets.map(p => p.id.get).mkString(",")
-        ).executeInsert()
+          'problemSets -> newProblemSets.map(p => p.id.get).mkString(","),
+          'floatingProblems -> newFloatingProblems.map(p => p.id.get).mkString(",")
+      ).executeInsert()
 
-        User(Id(id.get), this.username, this.password, newProblemSets)
+        User(Id(id.get), this.username, this.password, newProblemSets, newFloatingProblems)
     }
   }
 
@@ -34,20 +36,23 @@ case class User(id: Pk[Long], username: String, password: String, problemSets: L
     DB.withConnection {
       implicit connection =>
         val newProblemSets = this.problemSets.map(p => p.save)
+        val newFloatingProblems = this.floatingProblems.map(p => p.save)
 
         SQL(
           """
           update user
-          set username = {username}, password = {password}, problemSets = {problemSets}
+          set username = {username}, password = {password}, problemSets = {problemSets},
+          floatingProblems = {floatingProblems}
           where id = {id}
           """
         ).on(
           'id -> this.id,
           'username -> this.username,
           'password -> this.password,
-          'problemSets -> newProblemSets.map(p => p.id.get).mkString(",")
+          'problemSets -> newProblemSets.map(p => p.id.get).mkString(","),
+          'floatingProblems -> newFloatingProblems.map(p => p.id.get).mkString(",")
         ).executeUpdate()
-        User(this.id, this.username, this.password, newProblemSets)
+        User(this.id, this.username, this.password, newProblemSets, newFloatingProblems)
     }
   }
 
@@ -70,11 +75,19 @@ case class User(id: Pk[Long], username: String, password: String, problemSets: L
   }
 
   def addProblemSet(problemSet: ProblemSet): User = {
-    User(this.id, this.username, this.password, problemSet :: this.problemSets)
+    User(this.id, this.username, this.password, problemSet :: this.problemSets, this.floatingProblems)
   }
 
   def removeProblemSet(problemSet: ProblemSet): User = {
-    User(this.id, this.username, this.password, this.problemSets.filterNot(p => p.id == problemSet.id))
+    User(this.id, this.username, this.password, this.problemSets.filterNot(p => p.id == problemSet.id), this.floatingProblems)
+  }
+
+  def addFloatingProblem(problem: Problem): User = {
+    User(this.id, this.username, this.password, this.problemSets, problem :: this.floatingProblems)
+  }
+
+  def removeFloatingProblem(problem: Problem): User = {
+    User(this.id, this.username, this.password, this.problemSets, this.floatingProblems.filterNot(p => p.id == problem.id))
   }
 }
 
@@ -83,9 +96,12 @@ object User {
     get[Pk[Long]]("user.id") ~
       get[String]("user.username") ~
       get[String]("user.password") ~
-      get[String]("user.problemSets") map {
-      case id~username~password~problemSets => User(id, username, password,
-        problemSets.split(",").filterNot(s => s.isEmpty).map(s => ProblemSet.findById(s.toLong).get).toList)
+      get[String]("user.problemSets") ~
+      get[String]("user.floatingProblems") map {
+      case id~username~password~problemSets~floatingProblems => User(id, username, password,
+        problemSets.split(",").filterNot(s => s.isEmpty).map(s => ProblemSet.findById(s.toLong).get).toList,
+        floatingProblems.split(",").filterNot(s => s.isEmpty).map(s => Problem.findById(s.toLong).get).toList
+      )
     }
   }
 
@@ -100,6 +116,15 @@ object User {
     DB.withConnection {
       implicit connection =>
         SQL("select * from user where username = {username}").on('username -> username).as(User.simple.singleOpt)
+    }
+  }
+
+  def findByProblemSet(problemSet: ProblemSet): Option[User] = list.find(_.problemSets.contains(problemSet))
+
+  def list: List[User] = {
+    DB.withConnection {
+      implicit connection =>
+        SQL("select * from user").as(User.simple *)
     }
   }
 

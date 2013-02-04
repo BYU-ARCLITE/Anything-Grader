@@ -85,7 +85,7 @@ case class ProblemSet(id: Pk[Long], name: String, problems: List[Problem], hooks
     val problems = (
       if(request.body.contains("problems")) {
         Json.parse(request.body("problems")(0)).as[List[String]].map(p =>
-          this.problems.find(pr => pr.id.get == p).get
+          this.problems.find(pr => pr.id.get == p.toLong).get
         )
       } else
         this.problems

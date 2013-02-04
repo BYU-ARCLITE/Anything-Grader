@@ -128,4 +128,21 @@ object ProblemSets extends Controller {
       Unauthorized(JsObject(Seq("success" -> JsBoolean(false),"message" -> JsString("Not logged in."))))
   }
 
+  def api(id: Long) = Action { implicit request =>
+    val user = User.current
+
+    // Check that the user is logged in
+    if (user.isDefined) {
+
+      // Check that the problem set exists
+      val problemSet = user.get.problemSets.find(p => p.id.get == id)
+      if (problemSet.isDefined) {
+        Ok(views.html.problemSets.api(problemSet.get))
+
+      } else // User doesn't have that problem set
+        Redirect(routes.ProblemSets.dashboard()).flashing("error" -> "Problem set doesn't exist")
+    } else // Not logged in
+      Redirect(routes.Application.index()).flashing("info" -> "You're not logged in")
+  }
+
 }

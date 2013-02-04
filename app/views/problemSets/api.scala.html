@@ -1,0 +1,136 @@
+@(problemSet: ProblemSet)(implicit request: RequestHeader)
+
+@main("Anything Grader - Edit Problem Set") {
+    @problemSets.header("api", problemSet.name, problemSet.id.get)
+
+    <h1>API Information</h1>
+    <p>
+        To start grading this problem set, use the following endpoint:
+        <code>@routes.API.startSession().absoluteURL()</code>
+
+        <div style="display: inline-block">
+            <table class="table table-bordered">
+                <tr>
+                    <th>Method</th>
+                    <td>POST</td>
+                </tr>
+                <tr>
+                    <th>Parameters</th>
+                    <td>
+                        <p>
+                            <code>problemSet=@{problemSet.id.get}</code><br />
+                            This is the ID of this problem set.
+                        </p>
+                        <p>
+                            <code>userInfo=...</code><br />
+                            This can be any information which helps you identify the person taking this problem set.
+                        </p>
+                    </td>
+                </tr>
+                <tr>
+                    <th>Returns</th>
+                    <td>
+                        <p>Returns a JSON object like this:</p>
+                        <pre>
+{
+    "accessToken": "XXXXXX",
+    "sessionId": "XXXXXX",
+    "success": true
+}</pre>
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </p>
+
+    <p>
+        To grade the problem, use the following endpoint:
+        <code>@routes.API.grade().absoluteURL()</code>
+
+        <div style="display: inline-block">
+            <table class="table table-bordered">
+                <tr>
+                    <th>Method</th>
+                    <td>POST</td>
+                </tr>
+                <tr>
+                    <th>Parameters</th>
+                    <td>
+                        <p>
+                            <code>sessionId=XXXXXX</code><br />
+                            The session ID you received when started grading.
+                        </p>
+                        <p>
+                            <code>accessToken=XXXXXX</code><br />
+                            The access token you received from your last (most recent) API call.
+                        </p>
+                        <p>
+                            <code>problemId=###</code><br />
+                            The ID of the problem.
+                        </p>
+                        <p>
+                            <code>responses=["XXXXXX"...]</code><br />
+                            The list of responses formatted as a JavaScript string array.
+                        </p>
+                    </td>
+                </tr>
+                <tr>
+                    <th>Returns</th>
+                    <td>
+                        <p>Returns a JSON object like this:</p>
+<pre>
+{
+    "accessToken": "XXXXXX",
+    "possible": XXX,
+    "scaled": XXX,
+    "score": XXX,
+    "success": true
+}</pre>
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </p>
+
+    <p>
+        To close this problem set to further grading and get a score summary, use the following endpoint:
+        <code>@routes.API.finishSession().absoluteURL()</code>
+
+        <div style="display: inline-block">
+            <table class="table table-bordered">
+                <tr>
+                    <th>Method</th>
+                    <td>POST</td>
+                </tr>
+                <tr>
+                    <th>Parameters</th>
+                    <td>
+                        <p>
+                            <code>sessionId=XXXXXX</code><br />
+                            The session ID you received when started grading.
+                        </p>
+                        <p>
+                            <code>accessToken=XXXXXX</code><br />
+                            The access token you received from your last (most recent) API call.
+                        </p>
+                    </td>
+                </tr>
+                <tr>
+                    <th>Returns</th>
+                    <td>
+                        <p>Returns a JSON object like this:</p>
+                        <pre>
+{
+    "possible": XXX,
+    "scaled": XXX,
+    "score": XXX,
+    "success": true
+}</pre>
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </p>
+
+
+}

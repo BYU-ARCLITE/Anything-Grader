@@ -3,26 +3,31 @@
 @main("Anything Grader - Edit Hooks") {
     <script src="@routes.Assets.at("javascripts/hooks.js")" type="text/javascript"></script>
 
+    @views.html.problemSets.header("hooks", problemSet.name, problemSet.id.get)
+
     <h1>Hooks for @problemSet.name</h1>
 
-    <table class="table table-bordered">
+    <table class="table table-bordered table-condensed">
         <tr>
             <th>URI</th>
             <th>Method</th>
-            <th>Auth Scheme</th>
             <th>Send Scaled Score?</th>
             <th>Additional Data Template</th>
+            <th>Content Type</th>
             <th>Actions</th>
         </tr>
         @for(hook <- problemSet.hooks) {
             <tr>
                 <td>@hook.uri</td>
                 <td>@hook.method</td>
-                <td>@hook.authScheme.authType</td>
                 <td>@if(hook.scaled) { Yes } else { No }</td>
-                <td>@hook.additionalData</td>
                 <td>
-                    <a href="@routes.Hooks.delete(hook.id.get)" class="btn">Delete</a>
+                    <a href="#" class="popoverButton" rel="popover" data-placement="bottom" data-content="@hook.additionalData" data-original-title="Additional Data Template">Click to view</a>
+                </td>
+                <td>@hook.contentType</td>
+                <td>
+                    <a href="#" class="btn btn-info popoverButton" rel="popover" data-placement="bottom" data-content="<p><strong>Auth Scheme:</strong> @hook.authScheme.authType</p><p><strong>Key:</strong> @hook.authScheme.publicKey</p><p><strong>Secret:</strong> @hook.authScheme.privateKey</p>" data-original-title="Auth Scheme Information" data-html="true">View Auth Info</a>
+                    <a href="@routes.Hooks.delete(hook.id.get)" class="btn btn-danger">Delete</a>
                 </td>
             </tr>
         }

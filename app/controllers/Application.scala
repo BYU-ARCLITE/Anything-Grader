@@ -16,7 +16,7 @@ object Application extends Controller {
   def test = Action {
     implicit request =>
 
-      val problem = Problem(NotAssigned, List("Red", "Yellow", "Blue"), 'multiple, 1, 1, caseModifier = false,
+      val problem = Problem(NotAssigned, "Test Problem", List("Red", "Yellow", "Blue"), 'multiple, 1, 1, caseModifier = false,
         punctuationModifier = false, wordOrderModifier = false, responseOrderModifier = true)
       val responses = List("Yellow", "Blue")
       val grade = Grader.grade(responses, problem)

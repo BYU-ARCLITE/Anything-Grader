@@ -1,0 +1,18 @@
+@(location: String, name: String, id: Long)
+@active(nav: String) = {
+    @if(nav == location) {
+        active
+    }
+}
+<div class="navbar">
+    <div class="navbar-inner">
+        <span class="brand">@name</span>
+        <ul class="nav">
+            <li><a href="@routes.ProblemSets.dashboard()">Dashboard</a></li>
+            <li class="@active("grades")"><a href="@routes.ProblemSets.grades(id)">Grades</a></li>
+            <li class="@active("view")"><a href="@routes.ProblemSets.edit(id)">View/Edit</a></li>
+            <li class="@active("hooks")"><a href="@routes.ProblemSets.editHooks(id)">Hooks</a></li>
+            <li class="@active("api")"><a href="@routes.ProblemSets.api(id)">API Information</a></li>
+        </ul>
+    </div>
+</div>

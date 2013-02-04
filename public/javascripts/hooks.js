@@ -5,4 +5,6 @@ $(function() {
         $("#contentType").val("application/xml");
         return false;
     });
+
+    $(".popoverButton").popover();
 });

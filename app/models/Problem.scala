@@ -10,6 +10,7 @@ import play.api.mvc.Request
 
 case class Problem(
                     id: Pk[Long],
+                    name: String,
                     answers: List[String],
                     problemType: Symbol,
                     points: Double = 1,
@@ -19,7 +20,8 @@ case class Problem(
                     wordOrderModifier: Boolean = false,
                     responseOrderModifier: Boolean = false,
                     gradientGradeMethod: Boolean = false,
-                    subtractiveModifier: Boolean = false
+                    subtractiveModifier: Boolean = false,
+                    multipleGradeModifier: Boolean = false
                     ) {
 
   def insert: Problem = {
@@ -28,13 +30,14 @@ case class Problem(
         val id: Option[Long] = SQL(
           """
           insert into problem
-          (answers, problemType, acceptanceRate, caseModifier, punctuationModifier, wordOrderModifier,
-          responseOrderModifier, gradientGradeMethod, points, subtractiveModifier)
+          (name, answers, problemType, acceptanceRate, caseModifier, punctuationModifier, wordOrderModifier,
+          responseOrderModifier, gradientGradeMethod, points, subtractiveModifier, multipleGradeModifier)
           values
-          ({answers}, {problemType}, {acceptanceRate}, {caseModifier}, {punctuationModifier}, {wordOrderModifier},
-          {responseOrderModifier}, {gradientGradeMethod}, {points}, {subtractiveModifier})
+          ({name}, {answers}, {problemType}, {acceptanceRate}, {caseModifier}, {punctuationModifier}, {wordOrderModifier},
+          {responseOrderModifier}, {gradientGradeMethod}, {points}, {subtractiveModifier}, {multipleGradeModifier})
           """
         ).on(
+          'name -> this.name,
           'answers -> Json.toJson(this.answers).toString(),
           'problemType -> this.problemType.name,
           'acceptanceRate -> this.acceptanceRate,
@@ -44,12 +47,14 @@ case class Problem(
           'responseOrderModifier -> this.responseOrderModifier,
           'gradientGradeMethod -> this.gradientGradeMethod,
           'points -> this.points,
-          'subtractiveModifier -> this.subtractiveModifier
+          'subtractiveModifier -> this.subtractiveModifier,
+          'multipleGradeModifier -> this.multipleGradeModifier
         ).executeInsert()
 
         Problem(
-          Id(id.get), this.answers, this.problemType, this.points, this.acceptanceRate, this.caseModifier, this.punctuationModifier,
-          this.wordOrderModifier, this.responseOrderModifier, this.gradientGradeMethod, this.subtractiveModifier
+          Id(id.get), this.name, this.answers, this.problemType, this.points, this.acceptanceRate, this.caseModifier,
+          this.punctuationModifier, this.wordOrderModifier, this.responseOrderModifier, this.gradientGradeMethod,
+          this.subtractiveModifier, this.multipleGradeModifier
         )
     }
   }
@@ -60,6 +65,7 @@ case class Problem(
         SQL(
           """
           update problem set
+          name = {name},
           answers = {answers},
           problemType = {problemType},
           acceptanceRate = {acceptanceRate},
@@ -69,11 +75,13 @@ case class Problem(
           responseOrderModifier = {responseOrderModifier},
           gradientGradeMethod = {gradientGradeMethod},
           points = {points},
-          subtractiveModifier = {subtractiveModifier}
+          subtractiveModifier = {subtractiveModifier},
+          multipleGradeModifier = {multipleGradeModifier}
           where id = {id}
           """
         ).on(
           'id -> this.id,
+          'name -> this.name,
           'answers -> Json.toJson(this.answers).toString(),
           'problemType -> this.problemType.name,
           'acceptanceRate -> this.acceptanceRate,
@@ -83,7 +91,8 @@ case class Problem(
           'responseOrderModifier -> this.responseOrderModifier,
           'gradientGradeMethod -> this.gradientGradeMethod,
           'points -> this.points,
-          'subtractiveModifier -> this.subtractiveModifier
+          'subtractiveModifier -> this.subtractiveModifier,
+          'multipleGradeModifier -> this.multipleGradeModifier
         ).executeUpdate()
         this
     }
@@ -100,6 +109,7 @@ case class Problem(
 
   def updateFromRequest()(implicit request: Request[Map[String, Seq[String]]]): Problem = {
     val params = request.body.map(p => (p._1, p._2(0)))
+    val name = params.get("name").getOrElse(this.name)
     val answers = Json.parse(params.get("answers").getOrElse(Json.toJson(this.answers).toString())).as[List[String]]
     val problemType = Symbol(params.get("problemType").getOrElse(this.problemType.name))
     val points = params.get("points").getOrElse(this.points.toString).toDouble
@@ -110,9 +120,10 @@ case class Problem(
     val responseOrderModifier = params.get("responseOrderModifier").getOrElse(this.responseOrderModifier.toString).toBoolean
     val gradientGradeMethod = params.get("gradientGradeMethod").getOrElse(this.gradientGradeMethod.toString).toBoolean
     val subtractiveModifier = params.get("subtractiveModifier").getOrElse(this.subtractiveModifier.toString).toBoolean
+    val multipleGradeModifier = params.get("multipleGradeModifier").getOrElse(this.multipleGradeModifier.toString).toBoolean
 
-    Problem(this.id, answers, problemType, points, acceptanceRate, caseModifier, punctuationModifier,
-      wordOrderModifier, responseOrderModifier, gradientGradeMethod, subtractiveModifier)
+    Problem(this.id, name, answers, problemType, points, acceptanceRate, caseModifier, punctuationModifier,
+      wordOrderModifier, responseOrderModifier, gradientGradeMethod, subtractiveModifier, multipleGradeModifier)
   }
 
   def delete() {
@@ -126,6 +137,7 @@ case class Problem(
 object Problem {
   val simple = {
     get[Pk[Long]]("problem.id") ~
+      get[String]("problem.name") ~
       get[String]("problem.answers") ~
       get[String]("problem.problemType") ~
       get[Double]("problem.acceptanceRate") ~
@@ -135,11 +147,15 @@ object Problem {
       get[Boolean]("problem.responseOrderModifier") ~
       get[Boolean]("problem.gradientGradeMethod") ~
       get[Double]("problem.points") ~
-      get[Boolean]("problem.subtractiveModifier") map {
-      case id ~ answers ~ problemType ~ acceptanceRate ~ caseModifier ~ punctuationModifier ~ wordOrderModifier ~ responseOrderModifier ~ gradientGradeMethod ~ points ~ subtractiveModifier => Problem(
-        id, Json.parse(answers).as[List[String]], Symbol(problemType), points, acceptanceRate, caseModifier,
-        punctuationModifier, wordOrderModifier, responseOrderModifier, gradientGradeMethod, subtractiveModifier
-      )
+      get[Boolean]("problem.subtractiveModifier") ~
+      get[Boolean]("problem.multipleGradeModifier") map {
+      case id ~ name ~answers ~ problemType ~ acceptanceRate ~ caseModifier ~ punctuationModifier ~ wordOrderModifier ~
+        responseOrderModifier ~ gradientGradeMethod ~ points ~ subtractiveModifier ~ multipleGradeModifier =>
+        Problem(
+          id, name, Json.parse(answers).as[List[String]], Symbol(problemType), points, acceptanceRate, caseModifier,
+          punctuationModifier, wordOrderModifier, responseOrderModifier, gradientGradeMethod, subtractiveModifier,
+          multipleGradeModifier
+        )
     }
   }
 
@@ -152,6 +168,7 @@ object Problem {
 
   def createFromRequest()(implicit request: Request[Map[String, Seq[String]]]): Problem = {
     val answers = Json.parse(request.body("answers")(0)).as[List[String]]
+    val name = request.body("name")(0)
     val problemType = Symbol(request.body("problemType")(0))
     val points = request.body("points")(0).toDouble
     val acceptanceRate = request.body("acceptanceRate")(0).toDouble
@@ -161,8 +178,9 @@ object Problem {
     val responseOrderModifier = request.body("responseOrderModifier")(0).toBoolean
     val gradientGradeMethod = request.body("gradientGradeMethod")(0).toBoolean
     val subtractiveModifier = request.body("subtractiveModifier")(0).toBoolean
+    val multipleGradeModifier = request.body("multipleGradeModifier")(0).toBoolean
 
-    Problem(NotAssigned, answers, problemType, points, acceptanceRate, caseModifier, punctuationModifier,
-      wordOrderModifier, responseOrderModifier, gradientGradeMethod, subtractiveModifier)
+    Problem(NotAssigned, name, answers, problemType, points, acceptanceRate, caseModifier, punctuationModifier,
+      wordOrderModifier, responseOrderModifier, gradientGradeMethod, subtractiveModifier, multipleGradeModifier)
   }
 }

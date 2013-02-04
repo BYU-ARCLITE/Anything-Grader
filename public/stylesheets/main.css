@@ -1,3 +1,26 @@
-body {
+body.dark {
+    background-color: #005588;
+}
+body .container {
+    background: #ffffff;
+    padding: 0 30px;
+    box-shadow: 0 0 60px rgba(0,0,0,0.5);
+    -moz-box-shadow: 0 0 60px rgba(0,0,0,0.5);
+    -webkit-box-shadow: 0 0 60px rgba(0,0,0,0.5);
 
+    border-radius: 0 0 10px 10px;
+    -moz-border-radius: 0 0 10px 10px;
+    -webkit-border-radius: 0 0 10px 10px;
+}
+
+.well.dark {
+    background-color: #eee;
+    border: 1px solid #888;
+}
+
+.accordion-group.dark {
+    border: 1px solid #aaa;
+}
+.accordion-inner.dark {
+    border-top: 1px solid #aaa;
 }

@@ -24,7 +24,7 @@ object Auth extends Controller {
 
       // Check that the passwords match
       if(password == password2) {
-        val user = User(NotAssigned, username, Hasher.sha256Base64(password), List()).save
+        val user = User(NotAssigned, username, Hasher.sha256Base64(password), List(), List()).save
         Redirect(routes.ProblemSets.dashboard()).flashing("success" -> ("Welcome " + user.username + "!"))
           .withSession("username" -> user.username)
 
