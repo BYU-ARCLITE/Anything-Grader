@@ -239,7 +239,7 @@ object API extends Controller {
     for (hook <- session.problemSet.hooks) {
 
       // Create the data to be sent
-      val score = if (hook.scaled) session.getScaledScore else session.getScore
+      val score = if (hook.scaled) Grader.getScaled(session) else Grader.getScore(session)
       var data = ""
       if (hook.method == "POST") {
         val context = request.body.map(stuff => (stuff._1, stuff._2(0))) + ("grade" -> score.toString) +
@@ -261,7 +261,7 @@ object API extends Controller {
         // Send the request
         if (hook.method == "POST") {
           val response = wsRequest.post(data).await.get
-          //Logger.error("LMS response: " + response.body)
+          Logger.error("WS response: " + response.body)
         } else
           wsRequest.withQueryString("grade" -> grade.toString()).get()
       }
