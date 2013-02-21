@@ -13,7 +13,7 @@ import tools.Grader
 class GraderSpecification extends Specification {
   "The grader" should {
     "Support single answer" in {
-      val problem = Problem(NotAssigned, List("one"), 'single)
+      val problem = Problem(NotAssigned, "test", List("one"), 'single)
       val grade1 = Grader.grade(List("one"), problem).grade
       val grade2 = Grader.grade(List("two"), problem).grade
 
@@ -21,7 +21,7 @@ class GraderSpecification extends Specification {
       grade2 must beEqualTo(0d)
     }
     "Support multiple answer" in {
-      val problem = Problem(NotAssigned, List("one", "two", "three"), 'multiple)
+      val problem = Problem(NotAssigned, "test", List("one", "two", "three"), 'multiple)
       val grade1 = Grader.grade(List("one", "two", "three"), problem).grade
       val grade2 = Grader.grade(List("one", "two"), problem).grade
       val grade3 = Grader.grade(List("seven"), problem).grade
@@ -31,8 +31,8 @@ class GraderSpecification extends Specification {
       grade3 must beEqualTo(0d)
     }
     "Have different point values" in {
-      val problem1 = Problem(NotAssigned, List("one"), 'single)
-      val problem2 = Problem(NotAssigned, List("one"), 'single, 5)
+      val problem1 = Problem(NotAssigned, "test", List("one"), 'single)
+      val problem2 = Problem(NotAssigned, "test", List("one"), 'single, 5)
       val grade1 = Grader.grade(List("one"), problem1).grade
       val grade2 = Grader.grade(List("one"), problem2).grade
 
@@ -40,7 +40,7 @@ class GraderSpecification extends Specification {
       grade2 must beEqualTo(5d)
     }
     "Accept responses that match at or above a certain rate" in {
-      val problem = Problem(NotAssigned, List("four"), 'single, 1, 0.5)
+      val problem = Problem(NotAssigned, "test", List("four"), 'single, 1, 0.5)
       val grade1 = Grader.grade(List("four"), problem).grade
       val grade2 = Grader.grade(List("FOur"), problem).grade
       val grade3 = Grader.grade(List("FOUr"), problem).grade
@@ -50,8 +50,8 @@ class GraderSpecification extends Specification {
       grade3 must beEqualTo(0d)
     }
     "Be able to ignore case" in {
-      val problem1 = Problem(NotAssigned, List("one"), 'single, 1, 1, true)
-      val problem2 = Problem(NotAssigned, List("one"), 'single, 1, 1)
+      val problem1 = Problem(NotAssigned, "test", List("one"), 'single, 1, 1, true)
+      val problem2 = Problem(NotAssigned, "test", List("one"), 'single, 1, 1)
       val grade1 = Grader.grade(List("one"), problem1).grade
       val grade2 = Grader.grade(List("OnE"), problem1).grade
       val grade3 = Grader.grade(List("OnE"), problem2).grade
@@ -61,9 +61,9 @@ class GraderSpecification extends Specification {
       grade3 must beEqualTo(0d)
     }
     "Be able to ignore punctuation" in {
-      val problem1 = Problem(NotAssigned, List("one two"), 'single, 1, 1, false, true)
-      val problem2 = Problem(NotAssigned, List("one. two"), 'single, 1, 1, false, true)
-      val problem3 = Problem(NotAssigned, List("one. two"), 'single)
+      val problem1 = Problem(NotAssigned, "test", List("one two"), 'single, 1, 1, false, true)
+      val problem2 = Problem(NotAssigned, "test", List("one. two"), 'single, 1, 1, false, true)
+      val problem3 = Problem(NotAssigned, "test", List("one. two"), 'single)
       val grade1 = Grader.grade(List("one. two"), problem1).grade
       val grade2 = Grader.grade(List("one two"), problem2).grade
       val grade3 = Grader.grade(List("one two"), problem3).grade
@@ -73,8 +73,8 @@ class GraderSpecification extends Specification {
       grade3 must beEqualTo(0d)
     }
     "Be able to ignore word order" in {
-      val problem1 = Problem(NotAssigned, List("one two"), 'single, 1, 1, false, false, true)
-      val problem2 = Problem(NotAssigned, List("one two"), 'single)
+      val problem1 = Problem(NotAssigned, "test", List("one two"), 'single, 1, 1, false, false, true)
+      val problem2 = Problem(NotAssigned, "test", List("one two"), 'single)
       val grade1 = Grader.grade(List("one two"), problem1).grade
       val grade2 = Grader.grade(List("two one"), problem1).grade
       val grade3 = Grader.grade(List("two one"), problem2).grade
@@ -84,8 +84,8 @@ class GraderSpecification extends Specification {
       grade3 must beEqualTo(0d)
     }
     "Be able to ignore response order" in {
-      val problem1 = Problem(NotAssigned, List("one", "two"), 'multiple, 1, 1, false, false, false, true)
-      val problem2 = Problem(NotAssigned, List("one", "two"), 'multiple)
+      val problem1 = Problem(NotAssigned, "test", List("one", "two"), 'multiple, 1, 1, false, false, false, true)
+      val problem2 = Problem(NotAssigned, "test", List("one", "two"), 'multiple)
       val grade1 = Grader.grade(List("one", "two"), problem1).grade
       val grade2 = Grader.grade(List("two", "one"), problem1).grade
       val grade3 = Grader.grade(List("two", "one"), problem2).grade
@@ -95,8 +95,8 @@ class GraderSpecification extends Specification {
       grade3 must beEqualTo(0d)
     }
     "Be able to ignore response order with different number of answers" in {
-      val problem1 = Problem(NotAssigned, List("Red", "Yellow", "Blue"), 'multiple, 1, 1, false, false, false, true)
-      val problem2 = Problem(NotAssigned, List("Red", "Yellow", "Blue"), 'multiple)
+      val problem1 = Problem(NotAssigned, "test", List("Red", "Yellow", "Blue"), 'multiple, 1, 1, false, false, false, true)
+      val problem2 = Problem(NotAssigned, "test", List("Red", "Yellow", "Blue"), 'multiple)
       val grade1 = Grader.grade(List("Yellow", "Blue"), problem1).grade
       val grade2 = Grader.grade(List("Blue", "Yellow"), problem1).grade
       val grade3 = Grader.grade(List("Blue", "Orange", "Red"), problem1).grade
@@ -108,8 +108,8 @@ class GraderSpecification extends Specification {
       grade4 must beEqualTo(0d)
     }
     "Give partial credit" in {
-      val problem1 = Problem(NotAssigned, List("four"), 'single, 10, 1, false, false, false, false, true)
-      val problem2 = Problem(NotAssigned, List("four"), 'single)
+      val problem1 = Problem(NotAssigned, "test", List("four"), 'single, 10, 1, false, false, false, false, true)
+      val problem2 = Problem(NotAssigned, "test", List("four"), 'single)
       val grade1 = Grader.grade(List("four"), problem1).grade
       val grade2 = Grader.grade(List("foUR"), problem1).grade
       val grade3 = Grader.grade(List("FOUR"), problem1).grade
@@ -121,7 +121,7 @@ class GraderSpecification extends Specification {
       grade4 must beEqualTo(0d)
     }
     "Take away points" in {
-      val problem = Problem(NotAssigned, List("one", "two", "three"), 'multiple, 1, 1, false, false, false, false, false, true)
+      val problem = Problem(NotAssigned, "test", List("one", "two", "three"), 'multiple, 1, 1, false, false, false, false, false, true)
       val grade1 = Grader.grade(List("one", "two", "three"), problem).grade // 3
       val grade2 = Grader.grade(List("one", "two"), problem).grade // 2
       val grade3 = Grader.grade(List("one", "two", "four"), problem).grade // 1
@@ -133,6 +133,18 @@ class GraderSpecification extends Specification {
       grade3 must beEqualTo(1d)
       grade4 must beEqualTo(0d)
       grade5 must beEqualTo(-1d)
+    }
+    "Accept empty responses" in {
+      val problem = Problem(NotAssigned, "test", List("One"), 'single)
+      val grade = Grader.grade(List(""), problem).grade
+
+      grade must beEqualTo(0d)
+    }
+    "Accept no responses" in {
+      val problem = Problem(NotAssigned, "test", List("One"), 'single)
+      val grade = Grader.grade(List(), problem).grade
+
+      grade must beEqualTo(0d)
     }
   }
 }

@@ -7,12 +7,12 @@ import org.apache.commons.lang3.StringUtils
 object Grader {
 
   def compareSets(responses: List[List[String]], answers: List[List[String]], wordOrder: Boolean): List[Double] =
-    // Check each response with each answer and compute a percentage on how much it matches (1st line)
-    // Then pick the answer which it is closest to (2nd line)
-    // Then group the responses by the answer they are closest to. (3rd line)
-    // Manipulate it so we get: answerIndex -> acceptanceRate (4th line)
-    // For each answer pick the highest acceptance rate (5th line)
-    // Return the list of acceptance rates (6th line)
+  // Check each response with each answer and compute a percentage on how much it matches (1st line)
+  // Then pick the answer which it is closest to (2nd line)
+  // Then group the responses by the answer they are closest to. (3rd line)
+  // Manipulate it so we get: answerIndex -> acceptanceRate (4th line)
+  // For each answer pick the highest acceptance rate (5th line)
+  // Return the list of acceptance rates (6th line)
     responses.map(response => answers.map(answer => computeAcceptanceRate(response, answer, wordOrder)).zipWithIndex)
       .map(mapping => mapping.maxBy(_._1))
       .groupBy(mapping => mapping._2)
@@ -22,8 +22,8 @@ object Grader {
 
   def computeAcceptanceRate(response: List[String], answer: List[String], wordOrderModifier: Boolean): Double = {
     // Get the levenshtein distance
-    val s1 = (if (wordOrderModifier) response.sortWith((s,t)=>s<t) else response).mkString(" ")
-    val s2 = (if (wordOrderModifier) answer.sortWith((s,t)=>s<t) else answer).mkString(" ")
+    val s1 = (if (wordOrderModifier) response.sortWith((s, t) => s < t) else response).mkString(" ")
+    val s2 = (if (wordOrderModifier) answer.sortWith((s, t) => s < t) else answer).mkString(" ")
     val dist: Double = StringUtils.getLevenshteinDistance(s1, s2)
 
     // Turn it into a percentage
@@ -47,46 +47,52 @@ object Grader {
   }
 
   def grade(responses: List[String], problem: Problem): ResponseData = {
-    // Pre process each response
-    var processedResponses = preprocess(responses, problem)
-    var processedAnswers = preprocess(problem.answers, problem)
+    // If there are no responses then assume wrong
+    if (responses.isEmpty)
+      ResponseData(NotAssigned, problem, List(), 0)
+    else {
 
-    if (problem.problemType == 'single) {
-      // Single answer
-      val acceptanceRate = computeAcceptanceRate(processedResponses(0), processedAnswers(0), problem.wordOrderModifier)
-      val grade = computeGrade(problem, acceptanceRate)
-      ResponseData(NotAssigned, problem, responses, grade)
-    } else {
-      // Multiple answer
-      var grade = 0d
-      val minSize = math.min(processedResponses.size, processedAnswers.size)
+      // Pre process each response
+      val processedResponses = preprocess(responses, problem)
+      val processedAnswers = preprocess(problem.answers, problem)
 
-      // Check if we care about response order
-      if (problem.responseOrderModifier) {
-        // We don't. So compare the sets
-
-        val results = compareSets(processedResponses, processedAnswers, problem.wordOrderModifier)
-
-        // Compute the grade of each result, and sum them up
-        grade = results.map(r => computeGrade(problem, r)).sum
-
-        // Penalize
-
-//        processedResponses = processedResponses.sortWith((r1, r2) => r1.mkString < r2.mkString)
-//        processedAnswers = processedAnswers.sortWith((r1, r2) => r1.mkString < r2.mkString)
+      if (problem.problemType == 'single) {
+        // Single answer
+        val acceptanceRate = computeAcceptanceRate(processedResponses(0), processedAnswers(0), problem.wordOrderModifier)
+        val grade = computeGrade(problem, acceptanceRate)
+        ResponseData(NotAssigned, problem, responses, grade)
       } else {
-        // We do. So go sequentially
-        for (i <- 0 until minSize) {
-          val acceptanceRate = computeAcceptanceRate(processedResponses(i), processedAnswers(i), problem.wordOrderModifier)
-          grade += computeGrade(problem, acceptanceRate)
+        // Multiple answer
+        var grade = 0d
+        val minSize = math.min(processedResponses.size, processedAnswers.size)
+
+        // Check if we care about response order
+        if (problem.responseOrderModifier) {
+          // We don't. So compare the sets
+
+          val results = compareSets(processedResponses, processedAnswers, problem.wordOrderModifier)
+
+          // Compute the grade of each result, and sum them up
+          grade = results.map(r => computeGrade(problem, r)).sum
+
+          // Penalize
+
+          //        processedResponses = processedResponses.sortWith((r1, r2) => r1.mkString < r2.mkString)
+          //        processedAnswers = processedAnswers.sortWith((r1, r2) => r1.mkString < r2.mkString)
+        } else {
+          // We do. So go sequentially
+          for (i <- 0 until minSize) {
+            val acceptanceRate = computeAcceptanceRate(processedResponses(i), processedAnswers(i), problem.wordOrderModifier)
+            grade += computeGrade(problem, acceptanceRate)
+          }
         }
+
+        // Check for extra bad answers
+        if (problem.subtractiveModifier && processedResponses.size > minSize)
+          grade -= problem.points * (processedResponses.size - minSize)
+
+        ResponseData(NotAssigned, problem, responses, grade)
       }
-
-      // Check for extra bad answers
-      if (problem.subtractiveModifier && processedResponses.size > minSize)
-        grade -= problem.points * (processedResponses.size - minSize)
-
-      ResponseData(NotAssigned, problem, responses, grade)
     }
   }
 
@@ -100,6 +106,8 @@ object Grader {
   }
 
   def getScore(session: GradeSession): Double = session.responseData.map(_.grade).sum
+
   def getPointsPossible(session: GradeSession): Double = session.responseData.map(_.problem.getPointsPossible).sum
+
   def getScaled(session: GradeSession): Double = getScore(session) / getPointsPossible(session)
 }
